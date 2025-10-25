@@ -1,24 +1,39 @@
-import os
 from pathlib import Path
-from pprint import pprint
 from typing import Callable
 
 import polars as pl
 from deltalake import DeltaTable, write_deltalake
-from model import DataSourceInfos, ListNotionPropertyValues, NotionPropertyValues
 from notion_client import Client
 
-# Create a persistent DuckDB database
+from backend.core.config import settings
+from backend.routers.ingestion_leads import model
+
+NOTION_CLIENT = Client(auth=settings.NOTION_TOKEN)
 
 
-# Fonctions d'extraction simples
 def simple_strategy(prop_data: dict, key: str) -> any:
-    """Extrait une valeur simple"""
+    """Extract a simple value from Notion property data.
+
+    Args:
+        prop_data: The property data dictionary from Notion.
+        key: The key to extract from the property data.
+
+    Returns:
+        The extracted value or None if not found.
+    """
     return prop_data.get(key)
 
 
 def list_strategy(prop_data: dict, key: str) -> list:
-    """Extrait une liste"""
+    """Extract a list value from Notion property data.
+
+    Args:
+        prop_data: The property data dictionary from Notion.
+        key: The key to extract from the property data.
+
+    Returns:
+        The extracted list or empty list if not found.
+    """
     return prop_data.get(key, [])
 
 
@@ -26,7 +41,6 @@ StrategiesPatternPropertiesNotion = Callable[[dict, str], any]
 DictStrategiesPatternPropertiesNotion = Callable[[str], StrategiesPatternPropertiesNotion]
 
 
-# Dictionnaire de stratégies
 STRATEGIES_PROPERTIES: DictStrategiesPatternPropertiesNotion = {
     "select": lambda data: simple_strategy(data, "select"),
     "status": lambda data: simple_strategy(data, "status"),
@@ -43,19 +57,22 @@ STRATEGIES_PROPERTIES: DictStrategiesPatternPropertiesNotion = {
 
 def extract_property_values(
     notion_properties: dict, strategy_properties: DictStrategiesPatternPropertiesNotion = STRATEGIES_PROPERTIES
-) -> list[NotionPropertyValues]:
-    """
-    Extrait les valeurs des propriétés Notion
+) -> list[model.NotionPropertyValues]:
+    """Extract property values from Notion data source results.
+
+    Iterates through all pages in the Notion data source and extracts
+    property values using the appropriate strategy for each property type.
 
     Args:
-        notion_properties: Le dictionnaire 'properties' d'une page Notion
+        notion_properties: Dictionary containing 'results' key with Notion pages.
+        strategy_properties: Dictionary mapping property types to extraction strategies.
+            Defaults to STRATEGIES_PROPERTIES.
 
     Returns:
-        NotionPropertyValues: Objet contenant uniquement les valeurs
+        ListNotionPropertyValues object containing validated property values for all pages.
     """
     values = {}
     list_notion_properties = []
-    pprint(notion_properties)
 
     for propertie in notion_properties["results"]:
         for prop_key, prop_data in propertie["properties"].items():
@@ -64,22 +81,28 @@ def extract_property_values(
 
         values["id"] = propertie["id"]
 
-        list_notion_properties.append(NotionPropertyValues(**values))
+        list_notion_properties.append(model.NotionPropertyValues(**values))
 
-    list_notion_properties = ListNotionPropertyValues(list_notion_property_value=list_notion_properties)
+    list_notion_properties = model.ListNotionPropertyValues(list_notion_property_value=list_notion_properties)
 
     return list_notion_properties
 
 
-def normalise_data(list_notion_properties: ListNotionPropertyValues) -> list[dict]:
-    """
-    Normalise les données Notion en format dict simple
+def normalise_data(list_notion_properties: model.ListNotionPropertyValues) -> list[dict]:
+    """Normalize Notion properties into a flat dictionary structure.
+
+    Transforms complex Notion property structures into simple key-value pairs
+    suitable for database storage. Handles nested structures like:
+    - Select/Status fields: extracts .name attribute
+    - Rich text fields: extracts plain_text from first element
+    - Date fields: extracts .start attribute
+    - People fields: extracts list of user IDs
 
     Args:
-        list_notion_properties: Liste des propriétés Notion validées
+        list_notion_properties: Validated list of Notion property values.
 
     Returns:
-        list[dict]: Liste de dictionnaires normalisés
+        List of normalized dictionaries with flat structure ready for database insertion.
     """
     list_values = []
 
@@ -169,68 +192,73 @@ def normalise_data(list_notion_properties: ListNotionPropertyValues) -> list[dic
     return list_values
 
 
-notion = Client(auth=os.environ["NOTION_TOKEN"])
-databases_id = os.environ["DATABASE_ID"]
+def get_data_source_from_notion(databases_id: str = settings.DATABASE_ID, notion_client: Client = NOTION_CLIENT):
+    """Retrieve Leads data source from a Notion database.
 
-my_page = notion.databases.retrieve(database_id=databases_id)
+    Fetches the database metadata, finds the "Leads" data source,
+    and queries all records from that data source.
 
-for data_sources in my_page["data_sources"]:
-    if data_sources["name"] == "Leads":
-        data_source = DataSourceInfos(**data_sources)
+    Args:
+        databases_id: The ID of the Notion database to query.
+            Defaults to DATABASE_ID from environment.
+        notion_client: Authenticated Notion client instance.
+            Defaults to NOTION_CLIENT.
 
-my_data_source = notion.data_sources.query(data_source_id=data_source.id_)
+    Returns:
+        Dictionary containing query results with all pages from the Leads data source.
+
+    Raises:
+        UnboundLocalError: If no data source named "Leads" is found in the database.
+    """
+    my_page = notion_client.databases.retrieve(database_id=databases_id)
+
+    for data_sources in my_page["data_sources"]:
+        if data_sources["name"] == "Leads":
+            data_source = model.DataSourceInfos(**data_sources)
+
+    my_data_source = notion_client.data_sources.query(data_source_id=data_source.id_)
+
+    return my_data_source
 
 
-values = extract_property_values(my_data_source)
-values_noramalise = normalise_data(values)
-pprint(pl.from_dicts(values_noramalise))
+def write_to_deltalake(
+    values_normalise: list[dict],
+    schema: dict = model.SCHEMA_POLARS,
+    path_table_deltalake: Path = settings.PATH_DELTALAKE,
+) -> None:
+    """Write normalized data to Delta Lake with upsert logic.
 
+    Creates a new Delta table if it doesn't exist, or performs a merge operation
+    on existing data. After merge, optimizes the table by compacting files
+    and cleaning up old versions.
 
-def write_to_deltalake(values_noramalise: list[dict]):
-    schema = {
-        "id": pl.Utf8,
-        "activite_source_pharow": pl.Utf8,
-        "departement": pl.Utf8,
-        "en_croissance": pl.Utf8,
-        "genre": pl.Utf8,
-        "niveau_hierachique": pl.Utf8,
-        "priorite": pl.Utf8,
-        "reponse_setting": pl.Utf8,
-        "show": pl.Utf8,
-        "sous_departement": pl.Utf8,
-        "tranche_effectif_corrigee": pl.Utf8,
-        "type_de_setting": pl.Utf8,
-        "etat": pl.Utf8,
-        "adresse_siege_complete": pl.Utf8,
-        "chiffre_affaires_simplifie": pl.Utf8,
-        "nom": pl.Utf8,
-        "nom_entreprise": pl.Utf8,
-        "poste_occupe": pl.Utf8,
-        "prenom": pl.Utf8,
-        "ville_residence": pl.Utf8,
-        "nom_du_projet": pl.Utf8,
-        "date_appel_booke": pl.Date,
-        "date_appel_propose": pl.Date,
-        "date_prise_contact": pl.Date,
-        "date_relance": pl.Date,
-        "date_reponse_prospect": pl.Date,
-        "budget": pl.Float64,
-        "email_pro": pl.Utf8,
-        "telephone": pl.Utf8,
-        "url_site_internet": pl.Utf8,
-        "url_linkedin": pl.Utf8,
-        "personne_assignee": pl.List(pl.Utf8),
-    }
+    The merge operation:
+    - Matches on 'id' field
+    - Updates all columns except 'id' when matched
+    - No insert operation for new records (update-only mode)
 
-    path_table_deltake = Path(__file__).parents[1] / "leads_data"
+    Args:
+        values_normalise: List of normalized dictionaries to write.
+        schema: Polars schema definition for type enforcement.
+            Defaults to model.SCHEMA_POLARS.
 
-    data_to_put_un_duckdb = pl.from_dicts(values_noramalise, schema_overrides=schema)
+    Returns:
+        None
 
-    if not path_table_deltake.exists():
-        write_deltalake(path_table_deltake, data_to_put_un_duckdb)
+    Note:
+        Vacuum operation uses retention_hours=0 which immediately removes
+        old files. This is suitable for development but should be adjusted
+        for production use.
+    """
+    path_table_deltalake = Path(__file__).parents[2] / "data_leads"
+
+    data_to_put_un_duckdb = pl.from_dicts(values_normalise, schema_overrides=schema)
+
+    if not path_table_deltalake.exists():
+        write_deltalake(path_table_deltalake, data_to_put_un_duckdb)
         return
 
-    dt = DeltaTable(path_table_deltake)
+    dt = DeltaTable(path_table_deltalake)
 
     (
         dt.merge(
@@ -245,6 +273,3 @@ def write_to_deltalake(values_noramalise: list[dict]):
 
     dt.optimize.compact()
     dt.vacuum(retention_hours=0, enforce_retention_duration=False, dry_run=False)
-
-
-write_to_deltalake(values_noramalise)

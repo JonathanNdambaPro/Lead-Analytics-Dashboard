@@ -51,4 +51,8 @@ help:
 	@uv run python -c "import re; \
 	[[print(f'\033[36m{m[0]:<20}\033[0m {m[1]}') for m in re.findall(r'^([a-zA-Z_-]+):.*?## (.*)$$', open(makefile).read(), re.M)] for makefile in ('$(MAKEFILE_LIST)').strip().split()]"
 
+.PHONY: backend_deploy_local
+backend_deploy_local: ## Launch the application
+	@uv run uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload
+
 .DEFAULT_GOAL := help
