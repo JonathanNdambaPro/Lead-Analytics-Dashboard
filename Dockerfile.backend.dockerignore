@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+ENV/
+
+# Tests
+.pytest_cache/
+.coverage
+.tox/
+htmlcov/
+*.cover
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Frontend (ne pas inclure dans l'image backend)
+frontend/
+
+# CI/CD
+.github/
+codecov.yaml
+
+# Configuration locale
+.env
+.env.local
+*.log
+
+# Divers
+trash.py
+Makefile
+tox.ini
+mkdocs.yml
+CONTRIBUTING.md
+LICENSE

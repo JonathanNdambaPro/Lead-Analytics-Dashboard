@@ -1,0 +1,57 @@
+# Backend Python files
+backend/
+*.py
+pyproject.toml
+uv.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+.tox/
+htmlcov/
+*.cover
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+docs/
+*.md
+!frontend/README.md
+
+# CI/CD
+.github/
+codecov.yaml
+
+# Configuration locale
+.env
+.env.local
+*.log
+
+# Divers
+trash.py
+Makefile
+tox.ini
+mkdocs.yml
+CONTRIBUTING.md
+LICENSE
+
+# Frontend node_modules (sera installé pendant le build)
+frontend/node_modules/
+frontend/.next/

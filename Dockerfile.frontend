@@ -1,0 +1,64 @@
+# Stage 1: Installation des dépendances
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Installation de pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copie des fichiers de dépendances
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+
+# Installation des dépendances
+RUN pnpm install --frozen-lockfile
+
+# Stage 2: Build de l'application
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Installation de pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copie des dépendances depuis l'étape précédente
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copie des fichiers source
+COPY frontend/ .
+
+# Variables d'environnement pour le build
+# NEXT_PUBLIC_* sont injectées dans le code au moment du build
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Build de l'application Next.js
+RUN pnpm build
+
+# Stage 3: Production runtime
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Création d'un utilisateur non-root
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copie des fichiers nécessaires pour la production
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+# Changement de propriétaire
+RUN chown -R nextjs:nodejs /app
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
