@@ -1,4 +1,4 @@
-# dataascode
+# 📊 Lead Analytics Dashboard
 
 [![Release](https://img.shields.io/github/v/release/jojodataascode/dataascode)](https://img.shields.io/github/v/release/jojodataascode/dataascode)
 [![Build status](https://img.shields.io/github/actions/workflow/status/jojodataascode/dataascode/main.yml?branch=main)](https://github.com/jojodataascode/dataascode/actions/workflows/main.yml?query=branch%3Amain)
@@ -6,68 +6,224 @@
 [![Commit activity](https://img.shields.io/github/commit-activity/m/jojodataascode/dataascode)](https://img.shields.io/github/commit-activity/m/jojodataascode/dataascode)
 [![License](https://img.shields.io/github/license/jojodataascode/dataascode)](https://img.shields.io/github/license/jojodataascode/dataascode)
 
-This is a template repository for Python projects that use uv for their dependency management.
+Application d'analyse de leads avec un dashboard moderne permettant de suivre les événements commerciaux (prises de contact, appels, relances, réponses prospects) avec des agrégations par semaine et par mois.
+
+## 🏗️ Architecture
+
+- **Backend** : FastAPI + DuckDB + Delta Lake (Python 3.13)
+- **Frontend** : Next.js 16 + React 19 + Tailwind CSS + Recharts
+- **Gestion de dépendances** : uv (backend) + pnpm (frontend)
+- **Déploiement** : Docker + Docker Compose
+
+## 📋 Liens
 
 - **Github repository**: <https://github.com/jojodataascode/dataascode/>
-- **Documentation** <https://jojodataascode.github.io/dataascode/>
+- **Documentation** : <https://jojodataascode.github.io/dataascode/>
+- **Documentation Docker** : [DOCKER.md](DOCKER.md)
 
-## Getting started with your project
+## ✨ Fonctionnalités
 
-### 1. Create a New Repository
+- 📈 **Visualisation des événements** : Graphiques interactifs des événements par semaine et mois
+- 📊 **Tableaux d'objectifs** : Suivi des objectifs hebdomadaires et mensuels
+- 🔄 **Ratios de conversion** : Analyse des taux de conversion entre les différentes étapes
+- 🎯 **Agrégations temporelles** : Analyses par semaine et par mois via DuckDB
+- 💾 **Stockage Delta Lake** : Format de données optimisé et versionné
+- 🔐 **Sécurité** : Gestion sécurisée des secrets (pas d'ARG Docker pour les données sensibles)
 
-First, create a repository on GitHub with the same name as this project, and then run the following commands:
+## 🚀 Démarrage rapide
+
+### Prérequis
+
+- Python 3.13+
+- Node.js 20+
+- Docker & Docker Compose (pour le déploiement containerisé)
+- pnpm (pour le frontend)
+- uv (pour le backend)
+
+### Option 1 : Développement local
+
+#### Backend
 
 ```bash
-git init -b main
-git add .
-git commit -m "init commit"
-git remote add origin git@github.com:jojodataascode/dataascode.git
-git push -u origin main
-```
-
-### 2. Set Up Your Development Environment
-
-Then, install the environment and the pre-commit hooks with
-
-```bash
+# Installation des dépendances Python
 make install
+
+# Lancer le backend
+make deploy_local
+# ou directement :
+uv run uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-This will also generate your `uv.lock` file
+Le backend sera accessible sur <http://localhost:8000>
+Documentation API : <http://localhost:8000/docs>
 
-### 3. Run the pre-commit hooks
+#### Frontend
 
-Initially, the CI/CD pipeline might be failing due to formatting issues. To resolve those run:
+```bash
+cd frontend
+
+# Installation des dépendances
+pnpm install
+
+# Lancer le frontend
+pnpm dev
+```
+
+Le frontend sera accessible sur <http://localhost:3000>
+
+### Option 2 : Déploiement Docker (Recommandé)
+
+```bash
+# Créer un fichier .env à la racine
+cat > .env << EOF
+NOTION_TOKEN=votre_token_ici
+DATABASE_ID=votre_database_id_ici
+EOF
+
+# Build et démarrage
+make docker-deploy
+
+# Ou manuellement :
+make docker-build
+make docker-up
+```
+
+**Services disponibles** :
+- Frontend : <http://localhost:3000>
+- Backend API : <http://localhost:8000>
+- Documentation API : <http://localhost:8000/docs>
+
+Pour plus de détails sur Docker, consultez [DOCKER.md](DOCKER.md).
+
+## 📁 Structure du projet
+
+```
+dataascode/
+├── backend/                    # Backend FastAPI
+│   ├── app.py                 # Point d'entrée FastAPI
+│   ├── core/                  # Configuration et modèles OpenAPI
+│   ├── data_leads/            # Données Delta Lake
+│   └── routers/               # Routes API
+│       ├── ingestion_leads/   # Ingestion des données
+│       └── transformation/    # Transformations et agrégations
+├── frontend/                   # Frontend Next.js
+│   ├── src/
+│   │   ├── app/              # Pages Next.js
+│   │   ├── components/       # Composants React
+│   │   └── lib/              # Utilitaires et API client
+│   └── public/               # Assets statiques
+├── Dockerfile.backend          # Image Docker backend
+├── Dockerfile.frontend         # Image Docker frontend
+├── docker-compose.yml          # Orchestration des services
+├── Makefile                    # Commandes de développement
+└── pyproject.toml             # Configuration Python & dépendances
+```
+
+## 🛠️ Développement
+
+### Installation de l'environnement
+
+```bash
+# Installation avec pre-commit hooks
+make install
+
+# Vérifier le code
+make check
+
+# Lancer les tests
+make test
+```
+
+### Pre-commit hooks
+
+Avant chaque commit, les hooks vérifient :
+- Formatage du code (black, ruff)
+- Linting (ruff, mypy)
+- Sécurité (detect-secrets, bandit)
+- Qualité SQL (sqlfluff)
+- Validation Docker
+
+Pour lancer manuellement :
 
 ```bash
 uv run pre-commit run -a
 ```
 
-### 4. Commit the changes
+## 📚 Documentation
 
-Lastly, commit the changes made by the two steps above to your repository.
+- **API Backend** : <http://localhost:8000/docs> (Swagger/OpenAPI)
+- **Docker** : [DOCKER.md](DOCKER.md)
+- **Contribution** : [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Documentation MkDocs** : `make docs`
+
+## 🧪 Tests et qualité
 
 ```bash
-git add .
-git commit -m 'Fix formatting issues'
-git push origin main
+# Lancer les tests
+make test
+
+# Vérifier la qualité du code
+make check
+
+# Build la documentation
+make docs-test
 ```
 
-You are now ready to start development on your project!
-The CI/CD pipeline will be triggered when you open a pull request, merge to main, or when you create a new release.
+## 🐳 Commandes Docker utiles
 
-To finalize the set-up for publishing to PyPI, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/publishing/#set-up-for-pypi).
-For activating the automatic documentation with MkDocs, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/mkdocs/#enabling-the-documentation-on-github).
-To enable the code coverage reports, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/codecov/).
+```bash
+# Build des images
+make docker-build
 
-## Releasing a new version
+# Démarrer les conteneurs
+make docker-up
 
-- Create an API Token on [PyPI](https://pypi.org/).
-- Add the API Token to your projects secrets with the name `PYPI_TOKEN` by visiting [this page](https://github.com/jojodataascode/dataascode/settings/secrets/actions/new).
-- Create a [new release](https://github.com/jojodataascode/dataascode/releases/new) on Github.
-- Create a new tag in the form `*.*.*`.
+# Arrêter les conteneurs
+make docker-down
 
-For more details, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/cicd/#how-to-trigger-a-release).
+# Voir les logs
+make docker-logs
+
+# Tout en un (build + start)
+make docker-deploy
+```
+
+## 🔐 Variables d'environnement
+
+Le projet utilise des variables d'environnement pour la configuration. Créez un fichier `.env` à la racine :
+
+```bash
+# Backend - Notion Integration
+NOTION_TOKEN=secret_xxxxxxxxxxxxx
+DATABASE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+# Frontend - API URL
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+⚠️ **Important** : Ne committez jamais le fichier `.env` avec des vraies valeurs. Les données sensibles sont passées via des variables d'environnement, **jamais** via `ARG` dans les Dockerfiles.
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues ! Consultez [CONTRIBUTING.md](CONTRIBUTING.md) pour les guidelines.
+
+### Workflow de contribution
+
+1. Fork le projet
+2. Créer une branche (`git checkout -b feature/amazing-feature`)
+3. Commit les changements (`git commit -m 'feat: add amazing feature'`)
+4. Push vers la branche (`git push origin feature/amazing-feature`)
+5. Ouvrir une Pull Request
+
+## 📝 License
+
+Ce projet est sous licence [LICENSE](LICENSE).
+
+## 📞 Support
+
+Pour toute question ou problème :
+- Ouvrir une [issue](https://github.com/jojodataascode/dataascode/issues)
+- Consulter la [documentation](https://jojodataascode.github.io/dataascode/)
 
 ---
 
