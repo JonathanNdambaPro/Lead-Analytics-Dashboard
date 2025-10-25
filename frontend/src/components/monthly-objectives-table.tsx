@@ -18,6 +18,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface ObjectiveRow {
   label: string;
@@ -52,6 +59,7 @@ export function MonthlyObjectivesTable() {
   const [data, setData] = React.useState<MonthlyEventCount[]>([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
+  const [selectedPeriod, setSelectedPeriod] = React.useState<string>("")
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -60,6 +68,11 @@ export function MonthlyObjectivesTable() {
         const result = await getMonthlyEventCounts()
         setData(result)
         setError(null)
+
+        // Sélectionner automatiquement le dernier mois disponible
+        if (result.length > 0) {
+          setSelectedPeriod(result[result.length - 1].mois)
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch data')
         console.error('Error fetching monthly event counts:', err)
@@ -71,8 +84,17 @@ export function MonthlyObjectivesTable() {
     fetchData()
   }, [])
 
-  // Calculer les totaux pour le mois en cours (dernier élément du tableau)
-  const currentMonthData = data.length > 0 ? data[data.length - 1] : null
+  // Trouver les données du mois sélectionné
+  const currentMonthData = data.find(item => item.mois === selectedPeriod) || null
+
+  // Créer la liste des périodes disponibles
+  const availablePeriods = data.map(item => {
+    const date = new Date(item.mois)
+    return {
+      value: item.mois,
+      label: date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+    }
+  })
 
   const getTotal = (key: keyof MonthlyEventCount): number => {
     if (!currentMonthData || key === 'mois') return 0
@@ -128,11 +150,25 @@ export function MonthlyObjectivesTable() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Objectifs Mensuels</CardTitle>
-        <CardDescription>
-          Suivi des objectifs du mois en cours
-        </CardDescription>
+      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0">
+        <div className="flex flex-col gap-1">
+          <CardTitle>Objectifs Mensuels</CardTitle>
+          <CardDescription>
+            Suivi des objectifs par mois
+          </CardDescription>
+        </div>
+        <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Sélectionner un mois" />
+          </SelectTrigger>
+          <SelectContent>
+            {availablePeriods.map((period) => (
+              <SelectItem key={period.value} value={period.value}>
+                {period.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </CardHeader>
       <CardContent>
         <Table>
