@@ -1,6 +1,6 @@
 WITH unpivoted_and_weekly AS (
   SELECT
-    DATE_TRUNC('month', date) AS semaine,
+    DATE_TRUNC('month', date) AS mois,
     type_evenement,
     date
   FROM (
@@ -17,5 +17,5 @@ WITH unpivoted_and_weekly AS (
 PIVOT unpivoted_and_weekly
 ON type_evenement
 USING COUNT(date)
-GROUP BY semaine
-ORDER BY semaine;
+GROUP BY mois
+ORDER BY mois;
