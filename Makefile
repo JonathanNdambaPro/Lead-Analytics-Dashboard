@@ -51,8 +51,34 @@ help:
 	@uv run python -c "import re; \
 	[[print(f'\033[36m{m[0]:<20}\033[0m {m[1]}') for m in re.findall(r'^([a-zA-Z_-]+):.*?## (.*)$$', open(makefile).read(), re.M)] for makefile in ('$(MAKEFILE_LIST)').strip().split()]"
 
-.PHONY: backend_deploy_local
-backend_deploy_local: ## Launch the application
-	@uv run uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload
+.PHONY: deploy_local
+deploy_local: ## Launch the application
+	@uv run uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload && npm run dev
+
+.PHONY: docker-build
+docker-build: ## Build Docker images
+	@echo "🐳 Building Docker images"
+	@docker-compose build
+
+.PHONY: docker-up
+docker-up: ## Start Docker containers
+	@echo "🐳 Starting Docker containers"
+	@docker-compose up -d
+
+.PHONY: docker-down
+docker-down: ## Stop Docker containers
+	@echo "🐳 Stopping Docker containers"
+	@docker-compose down
+
+.PHONY: docker-logs
+docker-logs: ## Show Docker logs
+	@echo "🐳 Showing Docker logs"
+	@docker-compose logs -f
+
+.PHONY: docker-deploy
+docker-deploy: docker-build docker-up ## Build and start Docker containers
+	@echo "✅ Application deployed on Docker"
+	@echo "Frontend: http://localhost:3000"
+	@echo "Backend: http://localhost:8000"
 
 .DEFAULT_GOAL := help
