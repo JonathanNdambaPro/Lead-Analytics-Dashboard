@@ -11,8 +11,14 @@ class Settings(BaseSettings):
 
     NOTION_TOKEN: str
     DATABASE_ID: str
+
     GCS_URI: str
     GOOGLE_APPLICATION_CREDENTIALS: str
+
+    HMAC_KEY: str
+    HMAC_SECRET: str
+
+    LOGFIRE_TOKEN: str
 
     API_V1_STR: str = "/api/v1"
     FRONTEND_HOST: list[str] = ["http://localhost:3000", "http://localhost:3001"]

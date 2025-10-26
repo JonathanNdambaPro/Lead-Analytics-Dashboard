@@ -1,3 +1,6 @@
+import os
+
+import logfire
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -6,6 +9,9 @@ from backend.routers.ingestion_leads import main as ingestion_leads_main
 from backend.routers.transformation import main as transformation_leads_main
 
 app = FastAPI()
+
+logfire.configure(token=os.environ["LOGFIRE_TOKEN"])
+logfire.instrument_fastapi(app)
 
 app.add_middleware(
     CORSMiddleware,

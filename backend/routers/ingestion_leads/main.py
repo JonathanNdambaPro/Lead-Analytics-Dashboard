@@ -6,7 +6,11 @@ This module handles the complete ETL process for Notion leads data:
 - Loads data into Delta Lake with merge operations
 """
 
+import os
+
+import logfire
 from fastapi import APIRouter
+from loguru import logger
 
 from backend.routers.ingestion_leads import docs
 from backend.routers.ingestion_leads.utils import (
@@ -15,6 +19,9 @@ from backend.routers.ingestion_leads.utils import (
     normalise_data,
     write_to_deltalake,
 )
+
+logfire.configure(token=os.environ["LOGFIRE_TOKEN"])
+logger.configure(handlers=[logfire.loguru_handler()])
 
 router = APIRouter(prefix="/ingestion", tags=["Ingestion"])
 
@@ -28,10 +35,20 @@ async def ingestion_leads() -> dict[str, str | int]:
     Returns:
         Dictionary with success message and record count.
     """
+
+    logger.info("🚀 Starting Notion leads ingestion...")
+
+    logger.info("📥 Extracting data from Notion...")
     my_data_source = get_data_source_from_notion()
+
+    logger.info("🔄 Transforming Notion properties...")
     values = extract_property_values(my_data_source)
     values_normalise = normalise_data(values)
+    logger.info(f"✅ Transformed {len(values_normalise)} records")
+
+    logger.info("💾 Writing to Delta Lake...")
     write_to_deltalake(values_normalise)
+    logger.info("✅ Ingestion completed successfully")
 
     return {
         "message": "Données notion leads mise à jour",

@@ -9,11 +9,17 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/data_leads:/app/backend/data_leads
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/app/credentials.json:ro
     environment:
       - PYTHONUNBUFFERED=1
       - NOTION_TOKEN=${NOTION_TOKEN}
       - DATABASE_ID=${DATABASE_ID}
+      - GCS_URI=${GCS_URI}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+
+      - HMAC_KEY=${HMAC_KEY}
+      - HMAC_SECRET=${HMAC_SECRET}
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN}
     networks:
       - dataascode-network
     healthcheck:
