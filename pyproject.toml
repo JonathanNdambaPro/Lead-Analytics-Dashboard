@@ -38,9 +38,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://jojodataascode.github.io/dataascode/"
-Repository = "https://github.com/jojodataascode/dataascode"
-Documentation = "https://jojodataascode.github.io/dataascode/"
+Homepage = "https://jonathanndambapro.github.io/Lead-Analytics-Dashboard/"
+Repository = "https://github.com/JonathanNdambaPro/Lead-Analytics-Dashboard"
+Documentation = "https://jonathanndambapro.github.io/Lead-Analytics-Dashboard/"
 
 [dependency-groups]
 dev = [

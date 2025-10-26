@@ -226,21 +226,42 @@ async with httpx.AsyncClient() as client:
 - Requêtes SQL optimisées avec UNPIVOT/PIVOT
 - Pas de cache (temps réel)
 
-## Logging
+## Logging et Observabilité
 
-L'API utilise `loguru` pour des logs structurés :
+### Logfire + Loguru
+
+L'API utilise **Logfire** pour l'observabilité complète et **Loguru** pour les logs structurés :
 
 ```python
+import logfire
 from loguru import logger
 
-logger.info(f"💫 columns to aggregate {columns}")
+logfire.configure(token=os.environ["LOGFIRE_TOKEN"])
+logger.configure(handlers=[logfire.loguru_handler()])
+
+logger.info("📊 Starting weekly aggregation...")
 ```
 
-Les logs incluent :
-- Timestamp
-- Niveau (INFO, WARNING, ERROR)
-- Module et fonction
-- Message avec emojis pour la lisibilité
+**Fonctionnalités** :
+- Logs structurés avec emojis pour la lisibilité
+- Traces distribuées des requêtes FastAPI
+- Métriques de performance en temps réel
+- Corrélation automatique des logs et traces
+- Dashboard Logfire pour la visualisation
+
+**Exemple de logs** :
+```
+2025-10-26 15:30:12 | INFO | 📊 Starting weekly aggregation for columns: [...]
+2025-10-26 15:30:12 | INFO | 📂 Reading from: gs://notion-dataascode/data_leads
+2025-10-26 15:30:12 | INFO | ✅ DuckDB connection configured for GCS access
+2025-10-26 15:30:13 | INFO | ✅ Weekly aggregation completed: 24 weeks returned
+```
+
+**Dashboard Logfire** :
+- URL : [https://logfire.pydantic.dev](https://logfire.pydantic.dev)
+- Visualisation des traces en temps réel
+- Recherche et filtrage des logs
+- Graphiques de performance automatiques
 
 ## Prochaines étapes
 

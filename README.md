@@ -1,10 +1,10 @@
 # 📊 Lead Analytics Dashboard
 
-[![Release](https://img.shields.io/github/v/release/jojodataascode/dataascode)](https://img.shields.io/github/v/release/jojodataascode/dataascode)
-[![Build status](https://img.shields.io/github/actions/workflow/status/jojodataascode/dataascode/main.yml?branch=main)](https://github.com/jojodataascode/dataascode/actions/workflows/main.yml?query=branch%3Amain)
-[![codecov](https://codecov.io/gh/jojodataascode/dataascode/branch/main/graph/badge.svg)](https://codecov.io/gh/jojodataascode/dataascode)
-[![Commit activity](https://img.shields.io/github/commit-activity/m/jojodataascode/dataascode)](https://img.shields.io/github/commit-activity/m/jojodataascode/dataascode)
-[![License](https://img.shields.io/github/license/jojodataascode/dataascode)](https://img.shields.io/github/license/jojodataascode/dataascode)
+[![Release](https://img.shields.io/github/v/release/JonathanNdambaPro/Lead-Analytics-Dashboard)](https://img.shields.io/github/v/release/JonathanNdambaPro/Lead-Analytics-Dashboard)
+[![Build status](https://img.shields.io/github/actions/workflow/status/JonathanNdambaPro/Lead-Analytics-Dashboard/main.yml?branch=main)](https://github.com/JonathanNdambaPro/Lead-Analytics-Dashboard/actions/workflows/main.yml?query=branch%3Amain)
+[![codecov](https://codecov.io/gh/JonathanNdambaPro/Lead-Analytics-Dashboard/branch/main/graph/badge.svg)](https://codecov.io/gh/JonathanNdambaPro/Lead-Analytics-Dashboard)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/JonathanNdambaPro/Lead-Analytics-Dashboard)](https://img.shields.io/github/commit-activity/m/JonathanNdambaPro/Lead-Analytics-Dashboard)
+[![License](https://img.shields.io/github/license/JonathanNdambaPro/Lead-Analytics-Dashboard)](https://img.shields.io/github/license/JonathanNdambaPro/Lead-Analytics-Dashboard)
 
 Application d'analyse de leads avec un dashboard moderne permettant de suivre les événements commerciaux (prises de contact, appels, relances, réponses prospects) avec des agrégations par semaine et par mois.
 
@@ -12,13 +12,14 @@ Application d'analyse de leads avec un dashboard moderne permettant de suivre le
 
 - **Backend** : FastAPI + DuckDB + Delta Lake (Python 3.13)
 - **Frontend** : Next.js 16 + React 19 + Tailwind CSS + Recharts
+- **Observabilité** : Logfire + Loguru
 - **Gestion de dépendances** : uv (backend) + pnpm (frontend)
 - **Déploiement** : Docker + Docker Compose
 
 ## 📋 Liens
 
-- **Github repository**: <https://github.com/jojodataascode/dataascode/>
-- **Documentation** : <https://jojodataascode.github.io/dataascode/>
+- **Github repository**: <https://github.com/JonathanNdambaPro/Lead-Analytics-Dashboard>
+- **Documentation** : <https://jonathanndambapro.github.io/Lead-Analytics-Dashboard/>
 - **Documentation Docker** : [DOCKER.md](DOCKER.md)
 
 ## ✨ Fonctionnalités
@@ -29,6 +30,7 @@ Application d'analyse de leads avec un dashboard moderne permettant de suivre le
 - 🎯 **Agrégations temporelles** : Analyses par semaine et par mois via DuckDB
 - 💾 **Stockage Delta Lake** : Format de données optimisé et versionné
 - ☁️ **Google Cloud Storage** : Stockage cloud distribué et durable pour Delta Lake
+- 🔥 **Observabilité Logfire** : Monitoring en temps réel, traces distribuées et logs structurés
 - 🔐 **Sécurité** : Gestion sécurisée des secrets (pas d'ARG Docker pour les données sensibles)
 
 ## 🚀 Démarrage rapide
@@ -204,7 +206,12 @@ DATABASE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
 # Google Cloud Storage (pour production)
 GCS_URI=gs://notion-dataascode/data_leads
-# Le fichier gcs-credentials.json doit être à la racine (pour Docker)
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
+HMAC_KEY=GOOG1EXXX...
+HMAC_SECRET=your-hmac-secret
+
+# Observabilité
+LOGFIRE_TOKEN=logfire_xxxxxxxxxxxxx
 
 # Frontend - API URL
 NEXT_PUBLIC_API_URL=http://localhost:8000
@@ -234,8 +241,8 @@ Ce projet est sous licence [LICENSE](LICENSE).
 ## 📞 Support
 
 Pour toute question ou problème :
-- Ouvrir une [issue](https://github.com/jojodataascode/dataascode/issues)
-- Consulter la [documentation](https://jojodataascode.github.io/dataascode/)
+- Ouvrir une [issue](https://github.com/JonathanNdambaPro/Lead-Analytics-Dashboard/issues)
+- Consulter la [documentation](https://jonathanndambapro.github.io/Lead-Analytics-Dashboard/)
 
 ---
 

@@ -11,6 +11,7 @@ graph TB
     Backend -->|SQL| DuckDB[(🦆 DuckDB)]
     Backend -->|Read/Write| DeltaLake[💾 Delta Lake]
     DeltaLake -->|Storage| GCS[☁️ Google Cloud Storage]
+    Backend -->|Logs & Traces| Logfire[🔥 Logfire]
     Notion[📝 Notion] -->|Sync| Backend
 
     style Frontend fill:#61dafb
@@ -18,6 +19,7 @@ graph TB
     style DuckDB fill:#ffd700
     style DeltaLake fill:#ff6b6b
     style GCS fill:#4285f4
+    style Logfire fill:#ff6600
 ```
 
 ## Stack technique
@@ -45,6 +47,7 @@ graph TB
 - **Stockage** : Delta Lake 1.2
 - **Package Manager** : uv
 - **Python** : 3.13
+- **Observabilité** : Logfire + Loguru
 
 **Caractéristiques** :
 - API REST asynchrone
@@ -52,6 +55,8 @@ graph TB
 - Validation Pydantic
 - CORS configuré
 - Logging structuré (Loguru)
+- Monitoring et traces en temps réel (Logfire)
+- Observabilité distribuée
 
 ### Stockage des données
 
@@ -328,12 +333,43 @@ app.add_middleware(
 - Mise en cache HTTP (à implémenter)
 - CDN pour les assets statiques (production)
 
-## Monitoring
+## Monitoring et Observabilité
+
+### Logfire - Observabilité en temps réel
+
+L'application utilise **Logfire** pour une observabilité complète :
+
+**Fonctionnalités** :
+- 📊 Traces distribuées des requêtes API
+- 🔍 Logs structurés avec contexte
+- ⚡ Métriques de performance en temps réel
+- 🐛 Debugging facilité avec spans détaillés
+- 📈 Dashboards automatiques
+
+**Configuration** :
+```python
+import logfire
+from loguru import logger
+
+logfire.configure(token=os.environ["LOGFIRE_TOKEN"])
+logger.configure(handlers=[logfire.loguru_handler()])
+```
+
+**Intégration** :
+- Tous les logs Loguru sont automatiquement envoyés à Logfire
+- Traces FastAPI automatiques avec contexte complet
+- Corrélation des logs avec les traces
 
 ### Logs
-- **Backend** : Loguru avec format structuré
+- **Backend** : Loguru → Logfire
 - **Frontend** : Console logs (Next.js)
 - **Docker** : `docker logs -f <container>`
+
+**Format des logs** :
+```
+2025-10-26 15:30:12 | INFO | 📊 Starting weekly aggregation...
+2025-10-26 15:30:13 | INFO | ✅ Weekly aggregation completed: 24 weeks
+```
 
 ### Health Checks
 ```yaml

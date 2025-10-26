@@ -14,8 +14,11 @@ Le backend nécessite les variables suivantes :
 |----------|-------------|--------|---------|
 | `NOTION_TOKEN` | Token d'authentification Notion | Oui | `secret_xxxxxxxxxxxxx` |
 | `DATABASE_ID` | ID de la base de données Notion | Oui | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
-| `GCS_URI` | URI du bucket GCS pour Delta Lake | Non | `gs://notion-dataascode/data_leads` |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Chemin vers le fichier credentials GCS | Oui (si GCS) | `/path/to/credentials.json` |
+| `GCS_URI` | URI du bucket GCS pour Delta Lake | Oui | `gs://notion-dataascode/data_leads` |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Chemin vers le fichier credentials GCS | Oui | `/path/to/credentials.json` |
+| `HMAC_KEY` | Clé HMAC pour l'authentification GCS | Oui | `GOOG1EXXX...` |
+| `HMAC_SECRET` | Secret HMAC pour l'authentification GCS | Oui | `your-hmac-secret` |
+| `LOGFIRE_TOKEN` | Token Logfire pour l'observabilité | Oui | `logfire_xxxxxxxxxxxxx` |
 | `PYTHONUNBUFFERED` | Mode non-bufferisé Python | Non | `1` |
 
 ### Frontend
@@ -40,9 +43,14 @@ Créez un fichier `.env` à la racine du projet :
 NOTION_TOKEN=secret_xxxxxxxxxxxxx
 DATABASE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
-# Google Cloud Storage (optionnel pour développement local)
+# Google Cloud Storage
 GCS_URI=gs://notion-dataascode/data_leads
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/gcs-credentials.json
+HMAC_KEY=GOOG1EXXX...
+HMAC_SECRET=your-hmac-secret
+
+# Observabilité
+LOGFIRE_TOKEN=logfire_xxxxxxxxxxxxx
 ```
 
 !!! danger "Important"
@@ -197,7 +205,38 @@ gsutil iam ch serviceAccount:YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccou
 ```bash
 export GOOGLE_APPLICATION_CREDENTIALS="/path/to/credentials.json"
 export GCS_URI="gs://notion-dataascode/data_leads"
+export HMAC_KEY="GOOG1EXXX..."
+export HMAC_SECRET="your-hmac-secret"
 ```
+
+## Configurer Logfire (observabilité)
+
+### 1. Créer un compte Logfire
+
+1. Aller sur [https://logfire.pydantic.dev](https://logfire.pydantic.dev)
+2. Créer un compte (gratuit pour commencer)
+3. Créer un nouveau projet
+
+### 2. Obtenir le token
+
+1. Dans le dashboard Logfire, aller dans "Settings" → "API Keys"
+2. Créer une nouvelle API key
+3. Copier le token → C'est votre `LOGFIRE_TOKEN`
+
+### 3. Configuration
+
+```bash
+export LOGFIRE_TOKEN="logfire_xxxxxxxxxxxxx"
+```
+
+### 4. Visualiser les logs et traces
+
+Une fois l'application lancée, tous les logs et traces seront visibles dans le dashboard Logfire :
+- URL : [https://logfire.pydantic.dev](https://logfire.pydantic.dev)
+- Traces des requêtes API en temps réel
+- Logs structurés avec recherche
+- Métriques de performance
+- Graphiques et dashboards automatiques
 
 ## Validation de la configuration
 

@@ -124,6 +124,11 @@ DATABASE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
 # Google Cloud Storage
 GCS_URI=gs://notion-dataascode/data_leads
+HMAC_KEY=GOOG1EXXX...
+HMAC_SECRET=your-hmac-secret
+
+# Observabilité
+LOGFIRE_TOKEN=logfire_xxxxxxxxxxxxx
 ```
 
 Docker Compose charge automatiquement ce fichier.
@@ -228,13 +233,20 @@ docker logs dataascode-frontend
 docker logs -f dataascode-backend
 ```
 
-### Logs structurés
+### Logs structurés avec Logfire
 
-Le backend utilise `loguru` pour des logs structurés :
+Le backend utilise **Logfire + Loguru** pour des logs structurés et de l'observabilité :
 
 ```
-2025-10-25 23:36:16.930 | INFO | backend.routers.transformation.main:count_date_by_week:36 - 💫 columns to aggregate
+2025-10-26 15:30:12 | INFO | 📊 Starting weekly aggregation for columns: [...]
+2025-10-26 15:30:13 | INFO | ✅ Weekly aggregation completed: 24 weeks returned
 ```
+
+**Visualisation dans Logfire** :
+- Dashboard temps réel : [https://logfire.pydantic.dev](https://logfire.pydantic.dev)
+- Traces distribuées des requêtes
+- Métriques de performance
+- Recherche et filtrage avancés
 
 ## Debugging
 

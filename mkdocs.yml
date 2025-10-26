@@ -1,11 +1,11 @@
 site_name: Lead Analytics Dashboard
-repo_url: https://github.com/jojodataascode/dataascode
-site_url: https://jojodataascode.github.io/dataascode
+repo_url: https://github.com/JonathanNdambaPro/Lead-Analytics-Dashboard
+site_url: https://jonathanndambapro.github.io/Lead-Analytics-Dashboard
 site_description: Application d'analyse de leads avec dashboard moderne pour suivre les événements commerciaux
 site_author: Jonathan NDamba
 edit_uri: edit/main/docs/
-repo_name: jojodataascode/dataascode
-copyright: Maintained by <a href="https://jojodataascode.com">jojodataascode</a>.
+repo_name: JonathanNdambaPro/Lead-Analytics-Dashboard
+copyright: Maintained by <a href="https://github.com/JonathanNdambaPro">Jonathan NDamba</a>.
 
 nav:
   - Accueil: index.md
@@ -13,6 +13,7 @@ nav:
     - Installation: getting-started/installation.md
     - Configuration: getting-started/configuration.md
     - Docker: getting-started/docker.md
+    - Observabilité: getting-started/observability.md
   - API Backend:
     - Vue d'ensemble: api/overview.md
     - Modules: modules.md
@@ -61,7 +62,7 @@ theme:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/jojodataascode/dataascode
+      link: https://github.com/JonathanNdambaPro/Lead-Analytics-Dashboard
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/dataascode
 

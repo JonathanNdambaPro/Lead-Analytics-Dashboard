@@ -17,8 +17,8 @@ Avant de commencer, assurez-vous d'avoir installé :
 ### 1. Cloner le repository
 
 ```bash
-git clone https://github.com/jojodataascode/dataascode.git
-cd dataascode
+git clone https://github.com/JonathanNdambaPro/Lead-Analytics-Dashboard.git
+cd Lead-Analytics-Dashboard
 ```
 
 ### 2. Installer les dépendances Python
@@ -86,7 +86,7 @@ make docker-up
 ## Structure des fichiers après installation
 
 ```
-dataascode/
+Lead-Analytics-Dashboard/
 ├── .venv/                    # Environnement virtuel Python
 ├── backend/
 │   ├── __pycache__/
