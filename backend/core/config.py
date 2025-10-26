@@ -11,10 +11,11 @@ class Settings(BaseSettings):
 
     NOTION_TOKEN: str
     DATABASE_ID: str
+    GCS_URI: str
+    GOOGLE_APPLICATION_CREDENTIALS: str
 
     API_V1_STR: str = "/api/v1"
     FRONTEND_HOST: list[str] = ["http://localhost:3000", "http://localhost:3001"]
-    PATH_DELTALAKE: Path = Path(__file__).parents[1] / "data_leads"
 
 
 settings = Settings()

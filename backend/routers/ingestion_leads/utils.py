@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Callable
 
 import polars as pl
@@ -224,7 +223,7 @@ def get_data_source_from_notion(databases_id: str = settings.DATABASE_ID, notion
 def write_to_deltalake(
     values_normalise: list[dict],
     schema: dict = model.SCHEMA_POLARS,
-    path_table_deltalake: Path = settings.PATH_DELTALAKE,
+    path_table_deltalake: str = settings.GCS_URI,
 ) -> None:
     """Write normalized data to Delta Lake with upsert logic.
 
@@ -241,6 +240,8 @@ def write_to_deltalake(
         values_normalise: List of normalized dictionaries to write.
         schema: Polars schema definition for type enforcement.
             Defaults to model.SCHEMA_POLARS.
+        path_table_deltalake: URI or path to Delta table (supports GCS).
+            Defaults to settings.GCS_URI.
 
     Returns:
         None
@@ -250,11 +251,10 @@ def write_to_deltalake(
         old files. This is suitable for development but should be adjusted
         for production use.
     """
-    path_table_deltalake = Path(__file__).parents[2] / "data_leads"
 
     data_to_put_un_duckdb = pl.from_dicts(values_normalise, schema_overrides=schema)
 
-    if not path_table_deltalake.exists():
+    if not DeltaTable.is_deltatable(path_table_deltalake):
         write_deltalake(path_table_deltalake, data_to_put_un_duckdb)
         return
 

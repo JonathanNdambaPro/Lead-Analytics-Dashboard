@@ -19,7 +19,7 @@ async def count_date_by_week(
     date_cols: list[str] = DATE_COLS,
     delta_table_path: Annotated[
         str | Path, Query(description="Path to the Delta Lake table", example="data_leads")
-    ] = settings.PATH_DELTALAKE,
+    ] = settings.GCS_URI,
 ):
     """Count date events by week from Delta Lake.
 
@@ -53,7 +53,7 @@ async def count_date_by_month(
     date_cols: list[str] = DATE_COLS,
     delta_table_path: Annotated[
         str | Path, Query(description="Path to the Delta Lake table", example="data_leads")
-    ] = settings.PATH_DELTALAKE,
+    ] = settings.GCS_URI,
 ):
     """Count date events by week from Delta Lake.
 
@@ -67,7 +67,7 @@ async def count_date_by_month(
     Returns:
         List of dictionaries with weekly counts per event type.
     """
-    logger.info(f"💫 columns to aggregate {date_cols}")
+    logger.info(f"💫 columns to aggregate by month {date_cols}")
 
     path_to_folder_request = Path(__file__).parent / "request"
     path_to_count_by_date = path_to_folder_request / "count_by_month_form_deltalake.sql"
