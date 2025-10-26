@@ -10,12 +10,14 @@ graph TB
     Frontend -->|REST API| Backend[⚙️ Backend FastAPI]
     Backend -->|SQL| DuckDB[(🦆 DuckDB)]
     Backend -->|Read/Write| DeltaLake[💾 Delta Lake]
+    DeltaLake -->|Storage| GCS[☁️ Google Cloud Storage]
     Notion[📝 Notion] -->|Sync| Backend
 
     style Frontend fill:#61dafb
     style Backend fill:#009688
     style DuckDB fill:#ffd700
     style DeltaLake fill:#ff6b6b
+    style GCS fill:#4285f4
 ```
 
 ## Stack technique
@@ -55,7 +57,8 @@ graph TB
 
 - **Format** : Delta Lake (Parquet + transaction log)
 - **Compression** : Snappy
-- **Localisation** : `backend/data_leads/`
+- **Localisation** : Google Cloud Storage (GCS) `gs://notion-dataascode/data_leads`
+- **Ancienne localisation** : `backend/data_leads/` (développement local uniquement)
 
 **Avantages** :
 - ACID transactions
@@ -63,6 +66,8 @@ graph TB
 - Schema evolution
 - Versioning automatique
 - Lecture optimisée
+- Stockage cloud distribué et durable
+- Accès concurrent sécurisé
 
 ## Architecture Backend
 
@@ -120,7 +125,7 @@ WITH unpivoted_and_weekly AS (
     type_evenement,
     date
   FROM (
-    UNPIVOT DELTA_SCAN('/path/to/data_leads')
+    UNPIVOT DELTA_SCAN('gs://notion-dataascode/data_leads')
     ON date_appel_booke,
        date_appel_propose,
        date_prise_contact,
@@ -140,7 +145,7 @@ ORDER BY semaine;
 ```
 
 **Étapes** :
-1. **DELTA_SCAN** : Lecture directe du format Delta Lake
+1. **DELTA_SCAN** : Lecture directe du format Delta Lake depuis GCS
 2. **UNPIVOT** : Transformation des colonnes en lignes
 3. **DATE_TRUNC** : Troncature au début de la semaine
 4. **PIVOT** : Retransformation en colonnes par type d'événement
@@ -226,19 +231,19 @@ graph TB
         Frontend[🐳 Frontend Container<br/>Node.js 20]
     end
 
-    subgraph "Volumes"
-        Data[📦 data_leads/<br/>Delta Lake]
+    subgraph "Google Cloud"
+        GCS[☁️ GCS Bucket<br/>Delta Lake]
     end
 
     Frontend -->|HTTP :8000| Backend
-    Backend -->|Mount| Data
+    Backend -->|API| GCS
 
     User[👤 Client] -->|:3000| Frontend
     User -->|:8000/docs| Backend
 
     style Backend fill:#009688
     style Frontend fill:#61dafb
-    style Data fill:#ff6b6b
+    style GCS fill:#4285f4
 ```
 
 ### Images Docker
@@ -274,17 +279,20 @@ graph LR
     A[.env file] --> B[docker-compose.yml]
     B --> C[Environment Variables]
     C --> D[Backend Runtime]
+    D --> E[GCS with credentials]
 
     style A fill:#ff6b6b
     style B fill:#ffd700
     style C fill:#90ee90
     style D fill:#009688
+    style E fill:#4285f4
 ```
 
 **Bonnes pratiques** :
 - ✅ Secrets passés via ENV au runtime
 - ✅ `.env` dans `.gitignore`
 - ✅ Utilisateur non-root dans les conteneurs
+- ✅ Credentials GCS via Service Account JSON
 - ❌ Jamais d'ARG pour les secrets
 - ❌ Jamais de commit de secrets
 

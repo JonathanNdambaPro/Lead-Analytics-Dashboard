@@ -14,6 +14,8 @@ Le backend nécessite les variables suivantes :
 |----------|-------------|--------|---------|
 | `NOTION_TOKEN` | Token d'authentification Notion | Oui | `secret_xxxxxxxxxxxxx` |
 | `DATABASE_ID` | ID de la base de données Notion | Oui | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
+| `GCS_URI` | URI du bucket GCS pour Delta Lake | Non | `gs://notion-dataascode/data_leads` |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Chemin vers le fichier credentials GCS | Oui (si GCS) | `/path/to/credentials.json` |
 | `PYTHONUNBUFFERED` | Mode non-bufferisé Python | Non | `1` |
 
 ### Frontend
@@ -37,10 +39,18 @@ Créez un fichier `.env` à la racine du projet :
 # .env
 NOTION_TOKEN=secret_xxxxxxxxxxxxx
 DATABASE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+# Google Cloud Storage (optionnel pour développement local)
+GCS_URI=gs://notion-dataascode/data_leads
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/gcs-credentials.json
 ```
 
 !!! danger "Important"
     Le fichier `.env` est déjà dans le `.gitignore`. Ne le committez **jamais** !
+
+!!! info "Stockage local vs GCS"
+    - **Développement local** : Vous pouvez omettre `GCS_URI` et `GOOGLE_APPLICATION_CREDENTIALS`. Les données seront stockées localement dans `backend/data_leads/`
+    - **Production/GCS** : Configurez `GCS_URI` et `GOOGLE_APPLICATION_CREDENTIALS` pour utiliser Google Cloud Storage
 
 ### Backend
 
@@ -155,6 +165,40 @@ Pour la production, considérez l'utilisation de :
 2. Cliquer sur "..." en haut à droite
 3. "Add connections" → Sélectionner votre intégration
 
+## Configurer Google Cloud Storage (optionnel)
+
+### 1. Créer un Service Account GCS
+
+1. Aller sur [Google Cloud Console](https://console.cloud.google.com)
+2. Créer un nouveau projet ou sélectionner un projet existant
+3. Aller dans "IAM & Admin" → "Service Accounts"
+4. Créer un Service Account avec les permissions :
+   - `Storage Object Admin` (pour lire/écrire dans le bucket)
+
+### 2. Créer et télécharger la clé JSON
+
+1. Cliquer sur le Service Account créé
+2. Onglet "Keys" → "Add Key" → "Create new key"
+3. Choisir le format JSON
+4. Télécharger le fichier JSON → C'est votre fichier credentials
+
+### 3. Créer un bucket GCS
+
+```bash
+# Avec la CLI gcloud
+gsutil mb -p YOUR_PROJECT_ID gs://notion-dataascode
+
+# Définir les permissions
+gsutil iam ch serviceAccount:YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com:roles/storage.objectAdmin gs://notion-dataascode
+```
+
+### 4. Configurer les variables d'environnement
+
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS="/path/to/credentials.json"
+export GCS_URI="gs://notion-dataascode/data_leads"
+```
+
 ## Validation de la configuration
 
 Pour vérifier que votre configuration est correcte :
@@ -172,11 +216,13 @@ curl http://localhost:8000/docs
 !!! danger "Bonnes pratiques de sécurité"
     - ✅ Utilisez `.env` pour le développement local
     - ✅ Ajoutez `.env` au `.gitignore`
+    - ✅ Ajoutez `*credentials*.json` au `.gitignore`
     - ✅ Utilisez des secrets managers en production
-    - ✅ Rotez régulièrement les tokens
+    - ✅ Rotez régulièrement les tokens et credentials
+    - ✅ Utilisez des Service Accounts avec permissions minimales (least privilege)
     - ❌ Ne committez jamais de secrets dans Git
     - ❌ N'utilisez jamais `ARG` pour les secrets dans Dockerfile
-    - ❌ Ne loggez jamais les secrets
+    - ❌ Ne loggez jamais les secrets ou credentials
 
 ## Prochaines étapes
 

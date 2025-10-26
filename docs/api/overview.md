@@ -101,7 +101,7 @@ WITH unpivoted_and_weekly AS (
     type_evenement,
     date
   FROM (
-    UNPIVOT DELTA_SCAN('/path/to/data_leads')
+    UNPIVOT DELTA_SCAN('gs://notion-dataascode/data_leads')
     ON date_appel_booke,
        date_appel_propose,
        date_prise_contact,
@@ -126,15 +126,17 @@ ORDER BY semaine;
 3. **PIVOT** : Recrée une colonne par type d'événement
 4. **COUNT** : Compte les événements par période
 
-### Delta Lake
+### Delta Lake sur GCS
 
-Les données sont stockées au format Delta Lake :
+Les données sont stockées au format Delta Lake sur Google Cloud Storage :
 
 - Versioning des données
 - Time travel
 - ACID transactions
 - Schema evolution
 - Compression Snappy
+- Stockage cloud distribué et durable
+- Accès concurrent sécurisé via GCS
 
 ## Format des dates
 

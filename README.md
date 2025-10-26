@@ -28,6 +28,7 @@ Application d'analyse de leads avec un dashboard moderne permettant de suivre le
 - 🔄 **Ratios de conversion** : Analyse des taux de conversion entre les différentes étapes
 - 🎯 **Agrégations temporelles** : Analyses par semaine et par mois via DuckDB
 - 💾 **Stockage Delta Lake** : Format de données optimisé et versionné
+- ☁️ **Google Cloud Storage** : Stockage cloud distribué et durable pour Delta Lake
 - 🔐 **Sécurité** : Gestion sécurisée des secrets (pas d'ARG Docker pour les données sensibles)
 
 ## 🚀 Démarrage rapide
@@ -78,7 +79,11 @@ Le frontend sera accessible sur <http://localhost:3000>
 cat > .env << EOF
 NOTION_TOKEN=votre_token_ici
 DATABASE_ID=votre_database_id_ici
+GCS_URI=gs://notion-dataascode/data_leads
 EOF
+
+# Placer vos credentials GCS (si vous utilisez GCS)
+cp /chemin/vers/credentials.json ./gcs-credentials.json
 
 # Build et démarrage
 make docker-deploy
@@ -197,11 +202,18 @@ Le projet utilise des variables d'environnement pour la configuration. Créez un
 NOTION_TOKEN=secret_xxxxxxxxxxxxx
 DATABASE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
+# Google Cloud Storage (pour production)
+GCS_URI=gs://notion-dataascode/data_leads
+# Le fichier gcs-credentials.json doit être à la racine (pour Docker)
+
 # Frontend - API URL
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-⚠️ **Important** : Ne committez jamais le fichier `.env` avec des vraies valeurs. Les données sensibles sont passées via des variables d'environnement, **jamais** via `ARG` dans les Dockerfiles.
+⚠️ **Important** :
+- Ne committez jamais le fichier `.env` avec des vraies valeurs
+- Ne committez jamais les fichiers `*credentials*.json`
+- Les données sensibles sont passées via des variables d'environnement, **jamais** via `ARG` dans les Dockerfiles
 
 ## 🤝 Contribution
 

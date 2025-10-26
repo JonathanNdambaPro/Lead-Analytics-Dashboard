@@ -86,8 +86,10 @@ services:
     environment:
       - NOTION_TOKEN=${NOTION_TOKEN}
       - DATABASE_ID=${DATABASE_ID}
+      - GCS_URI=${GCS_URI}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
     volumes:
-      - ./backend/data_leads:/app/backend/data_leads
+      - ./gcs-credentials.json:/app/credentials.json:ro
 
   frontend:
     build:
@@ -119,9 +121,24 @@ Créez un fichier `.env` à la racine :
 # .env
 NOTION_TOKEN=secret_xxxxxxxxxxxxx
 DATABASE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+# Google Cloud Storage
+GCS_URI=gs://notion-dataascode/data_leads
 ```
 
 Docker Compose charge automatiquement ce fichier.
+
+### Credentials GCS
+
+Placez votre fichier de credentials GCS à la racine du projet :
+
+```bash
+# Le fichier gcs-credentials.json doit être à la racine
+cp /chemin/vers/votre/credentials.json ./gcs-credentials.json
+```
+
+!!! warning "Sécurité"
+    Assurez-vous que `gcs-credentials.json` est dans le `.gitignore` pour ne jamais le committer.
 
 ### Build args vs ENV
 
@@ -134,6 +151,10 @@ Docker Compose charge automatiquement ce fichier.
 ```yaml
 environment:
   - NOTION_TOKEN=${NOTION_TOKEN}  # ✅ Sécurisé
+  - GCS_URI=${GCS_URI}            # ✅ Pas un secret
+  - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json  # ✅ Chemin dans le conteneur
+volumes:
+  - ./gcs-credentials.json:/app/credentials.json:ro  # ✅ Monté en lecture seule
 ```
 
 **Frontend** : URL de l'API passée via `build args` (pas de secret)
@@ -149,10 +170,13 @@ args:
 
 ```yaml
 volumes:
-  - ./backend/data_leads:/app/backend/data_leads
+  - ./gcs-credentials.json:/app/credentials.json:ro
 ```
 
-Le dossier `data_leads` (Delta Lake) est monté pour persister les données entre les redémarrages.
+Le fichier de credentials GCS est monté en lecture seule (`:ro`) dans le conteneur.
+
+!!! info "Stockage des données"
+    Les données Delta Lake sont maintenant stockées sur Google Cloud Storage (GCS) et non plus localement. Le montage d'un volume pour `data_leads` n'est plus nécessaire.
 
 ### Frontend
 
